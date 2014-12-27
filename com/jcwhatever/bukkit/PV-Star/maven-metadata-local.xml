@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>com.jcwhatever.bukkit</groupId>
-  <artifactId>PV-StarAPI</artifactId>
+  <artifactId>PV-Star</artifactId>
   <versioning>
     <versions>
       <version>0.0.SNAPSHOT</version>
     </versions>
-    <lastUpdated>20141227053231</lastUpdated>
+    <lastUpdated>20141227053245</lastUpdated>
   </versioning>
 </metadata>
