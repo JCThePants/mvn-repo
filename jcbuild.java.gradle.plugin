@@ -1,0 +1,313 @@
+import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
+
+def s = project.ext.jcBuildSettings
+
+def projectName = s.projectName
+def majorVersion = s.majorVersion
+def minorVersion = s.minorVersion
+def buildBy = s.buildBy // auto filled
+def mainClass = s.mainClass
+
+// target Java version
+def javaVersion = s.javaVersion
+
+// Maven repository url's
+def mavenRepositories = s.mavenRepositories
+
+// provided dependencies (provided by the runtime environment)
+def providedDependsFiles = s.providedDependsFiles
+def providedDepends = s.providedDepends
+
+// compile dependencies (compiled into output jar)
+def compileDependsFiles = s.compileDependsFiles
+def compileDepends = s.compileDepends
+
+// include files in output jar
+def includeFiles = s.includeFiles
+
+// include test classes
+def testIncludes = s.testIncludes
+
+// exclude test classes
+def testExcludes = s.testExcludes
+
+// test dependencies
+def testDepends = s.testDepends
+def testRuntimeDepends = s.testRuntimeDepends
+
+// dependencies that should always be downloaded (cached for 30 seconds)
+def snapshotDepends = s.snapshotDepends
+
+// source directory
+def sourceDir = s.sourceDir
+
+// resource directory
+def resourceDir = s.resourceDir
+
+// test source directory
+def testSourceDir = s.testSourceDir
+
+// test resource directory
+def testResourceDir = s.testResourceDir
+
+
+/**
+ * SETUP
+ */
+
+def hasTeamCity = hasProperty("teamcity")
+s.buildNumber = hasTeamCity ? teamcity["build.number"] : 'unknown'
+// Set version number
+if (hasTeamCity) {
+    version = majorVersion + '.' + minorVersion + '.' + s.buildNumber + '.git-' + teamcity["build.vcs.number"]
+
+    if (buildBy == null) {
+        buildBy = teamcity["build.triggeredBy.username"]
+
+        if (!buildBy) {
+            buildBy = teamcity["build.triggeredBy"]
+        }
+
+        if (!buildBy) {
+            buildBy = teamcity["agent.name"]
+        }
+    }
+
+}else {
+    version = majorVersion + '.' + minorVersion + '.000.git-unknown'
+}
+
+if (buildBy == null) {
+    buildBy = System.properties['user.name']
+}
+
+defaultTasks 'clean', 'build'
+
+apply plugin: 'java'
+
+def jdkHome = s.jdkHome;
+if (jdkHome) {
+    tasks.withType(Compile) {
+        options.bootClasspath = jdkHome + '/jre/lib/rt.jar'
+    }
+}
+
+// Minimum Java Version
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+
+// Add provided configuration to prevent dependencies
+// from being included in the jar
+configurations {
+    provided
+    all {
+        // dependencies that are marked as changing will only be cached for 30 seconds
+        resolutionStrategy.cacheChangingModulesFor 30, 'seconds'
+    }
+}
+
+sourceSets {
+
+    main {
+        compileClasspath += configurations.provided
+        runtimeClasspath += configurations.provided
+
+        java {
+            srcDir sourceDir
+        }
+
+        if (resourceDir) {
+            resources {
+                srcDir resourceDir
+            }
+        }
+    }
+    samples {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+
+    test {
+
+        compileClasspath += configurations.provided
+        runtimeClasspath += configurations.provided
+
+        if (testSourceDir) {
+            java {
+                srcDir testSourceDir
+            }
+        }
+
+        if (testResourceDir) {
+            resources {
+                srcDir testResourceDir
+            }
+        }
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies { classpath 'org.ajoberstar:gradle-git:0.2.3' }
+}
+
+repositories {
+    mavenCentral()
+
+    if (mavenRepositories) {
+        for (repo in mavenRepositories) {
+            maven {
+                url repo
+            }
+        }
+    }
+}
+
+// Add dependencies
+dependencies {
+
+    // add compile dependency files (compiled into output jar)
+    if (compileDependsFiles) {
+        compile files(compileDependsFiles)
+    }
+
+    // add provided dependency files (provided in runtime environment)
+    if (providedDependsFiles) {
+        provided files(providedDependsFiles)
+    }
+
+    // add Maven compile dependencies (compiled into output jar)
+    if (compileDepends) {
+        for (depend in compileDepends) {
+            compile(depend) {
+
+                // flag dependency as changing so it is re-downloaded if cached
+                changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+            }
+        }
+    }
+
+    // add Maven provided dependencies (provided in runtime environment)
+    if (providedDepends) {
+        for (depend in providedDepends) {
+            provided(depend) {
+
+                // flag dependency as changing so it is re-downloaded if cached
+                changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+            }
+        }
+    }
+
+    // add test dependencies
+    if (testDepends) {
+        for (depend in testDepends) {
+            testCompile(depend) {
+
+                // flag dependency as changing so it is re-downloaded if cached
+                changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+            }
+        }
+    }
+
+    // add testRuntime dependencies
+    if (testRuntimeDepends) {
+        for (depend in testRuntimeDepends) {
+            testRuntime(depend) {
+
+                // flag dependency as changing so it is re-downloaded if cached
+                changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+            }
+        }
+    }
+}
+
+/**
+ * JAR OUTPUT
+ */
+
+// output jar manifest
+def manifestAttr = [
+        "Built-By": buildBy,
+        "Created-By": System.properties['java.vm.version'] + " (" + System.properties['java.vm.vendor'] + ")",
+        "Implementation-Title": projectName,
+        "Implementation-Version": version
+]
+
+if (mainClass) {
+    manifestAttr.put("Main-Class", mainClass)
+}
+
+// Jar file output with version number
+jar {
+
+    archiveName = projectName + '.' + version + '.jar'
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    if (includeFiles) {
+        from includeFiles
+    }
+
+    manifest {
+        attributes(manifestAttr)
+    }
+}
+
+// Task to create a Jar file artifact with no version number
+// Task is run with Build
+task simpleNamedJar(type: Jar) {
+
+    archiveName = projectName + '.jar'
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    if (includeFiles) {
+        from includeFiles
+    }
+
+    manifest {
+        attributes(manifestAttr)
+    }
+
+    with jar
+}
+
+// create additional artifacts using the simpleNamedJar task
+artifacts {
+    archives simpleNamedJar
+}
+
+/**
+ * JUNIT TESTS
+ */
+test {
+    if (testIncludes)
+        include testIncludes
+
+    if (testExcludes)
+        exclude testExcludes
+
+    testLogging {
+        events 'started', 'passed'
+    }
+
+    minHeapSize = '128m'
+    maxHeapSize = '512m'
+
+    // set JVM arguments for the test JVM(s)
+    jvmArgs '-XX:MaxPermSize=256m'
+
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
+}

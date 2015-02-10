@@ -1,0 +1,88 @@
+/**
+ * Adds tasks that can be used to install latest build artifact to to a local maven repository and
+ * and push the repository to a Git repository.
+ *
+ * Must be used in conjunction with a jcbuild script.
+ */
+
+def s = project.ext.hasProperty('jcMavenSettings') ? project.ext.jcMavenSettings : [
+        shCmd: null,
+        mavenCmd: null,
+        mavenFolder: null,
+        mavenGroupId: null,
+        mavenArtifactId: null,
+        mavenVersion: null,
+        repositoryName: null,
+        branchName: null
+];
+
+def shCmd = s.shCmd ? s.shCmd : 'sh'
+def mavenCmd = s.mavenCmd ? s.mavenCmd : 'mvn'
+def mavenFolder = s.mavenFolder ? s.mavenFolder : '/mvn-repo'
+def mavenGroupId = s.mavenGroupId ? s.mavenGroupId : 'com.jcwhatever.bukkit'
+def mavenArtifactId = s.mavenArtifactId ? s.mavenArtifactId : project.ext.jcBuildSettings.projectName
+def mavenVersion = s.mavenVersion ? s.mavenVersion : ext.jcBuildSettings.majorVersion + '.' + ext.jcBuildSettings.minorVersion + '-SNAPSHOT'
+def repositoryName = s.repositoryName ? s.repositoryName : 'GITHUB'
+def branchName = s.branchName ? s.branchName : 'master'
+
+def projectName = project.ext.jcBuildSettings.projectName;
+
+/**
+ * OPTIONAL MAVEN REPO SNAPSHOT TASKS
+ */
+
+import org.ajoberstar.gradle.git.tasks.*
+
+// perform all tasks necessary to update
+// Git Maven repository with the latest
+// snapshot artifacts
+task updateMaven << {
+    pullMaven.execute()
+    updateLocalMavenHolding.execute()
+    updateLocalMaven.execute()
+    addMavenGit.execute()
+    commitMavenGit.execute()
+    pushMavenGit.execute()
+}
+
+// pull maven repo from git
+task pullMaven(type: Exec) {
+    workingDir mavenFolder
+    executable shCmd
+    args '--login', '-i', '-c', "git pull " + repositoryName +" " + branchName;
+}
+
+// copy jar artifact to a holding folder.
+task updateLocalMavenHolding(type: Copy) {
+    from file('build/libs/' + projectName + '.jar')
+    into file(mavenFolder + '/holding')
+}
+
+// add jar artifact from holding folder to local maven repository
+task updateLocalMaven(type: Exec) {
+    workingDir mavenFolder
+    executable shCmd
+    args '--login', '-i', '-c', mavenCmd + ' install:install-file -DgroupId=' + mavenGroupId +
+            ' -DartifactId=' + mavenArtifactId + ' -Dversion=' + mavenVersion + ' -Dfile=holding/' + projectName + '.jar -Dpackaging=jar -DgeneratePom=true -DlocalRepositoryPath=';
+}
+
+// add changed Maven files to Git
+task addMavenGit(type: Exec) {
+    workingDir mavenFolder
+    executable shCmd
+    args '--login', '-i', '-c', 'git add .';
+}
+
+// commit changed Maven files to Git
+task commitMavenGit(type: Exec) {
+    workingDir mavenFolder
+    executable shCmd
+    args '--login', '-i', '-c', "git commit -m 'Snapshot update for " + projectName + " build# " + project.ext.jcBuildSettings.buildNumber + "'"
+}
+
+// push Maven Git repository to GITHUB
+task pushMavenGit(type: Exec) {
+    workingDir mavenFolder
+    executable shCmd
+    args '--login', '-i', '-c', "git push " + repositoryName + " " + branchName
+}
