@@ -4,7 +4,6 @@
   <artifactId>PV-StarAPI</artifactId>
   <versioning>
     <versions>
-      <version>0.0.SNAPSHOT</version>
       <version>0.0-SNAPSHOT</version>
     </versions>
     <lastUpdated>20150127152251</lastUpdated>
