@@ -6,8 +6,7 @@ def shCmd = 'sh'
 def repositoryName = 'GITHUB'
 def branchName = 'gh-pages'
 def outDir = 'build/docs/doxygen/html'
-def userName = 'JCThePants'
-def gitUrl = 'https://${userName}@' + project.ext.jcBuildSettings.gitUrl;
+def gitUrl = 'https://JCThePants@' + project.ext.jcBuildSettings.gitUrl;
 
 buildscript {
     repositories {
