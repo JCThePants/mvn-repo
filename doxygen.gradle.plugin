@@ -6,6 +6,7 @@ def shCmd = 'sh'
 def repositoryName = 'GITHUB'
 def branchName = 'gh-pages'
 def outDir = 'build/docs/doxygen/html'
+def doxyfile = 'doxygen/Doxyfile'
 def gitUrl = 'https://JCThePants@' + project.ext.jcBuildSettings.gitUrl;
 
 buildscript {
@@ -30,6 +31,7 @@ task updateDox() << {
 task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
     generate_html true
     create_subdirs true
+    template doxyfile
     source new File(projectDir, project.ext.jcBuildSettings.sourceDir);
 }
 
