@@ -26,6 +26,12 @@ project.beforeEvaluate {
 task updateDox() << {
     buildDox.execute();
     initDoxGit.execute();
+    checkoutDoxGit.execute();
+    remoteAddDoxGit.execute();
+    unpushDoxGit.execute();
+    addDoxGit.execute();
+    commitDoxGit.execute();
+    pushDoxGit.execute();
 }
 
 task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
@@ -43,12 +49,41 @@ task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
 task initDoxGit(type: Exec) {
     workingDir new File(projectDir, outDir)
     executable shCmd
-    args '--login', '-i', '-c',
-            "git init;" +
-                    "git checkout -b ${branchName};" +
-                    "git remote add ${repositoryName} ${gitUrl};" +
-                    "git push ${repositoryName} :${branchName};" +
-                    "git add .;" +
-                    "git commit -m 'Doxygen update for build# ${project.ext.jcBuildSettings.buildNumber}';" +
-                    "git push ${repositoryName} ${branchName};"
+    args '--login', '-i', '-c', "git init;"
+}
+
+task checkoutDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git checkout -b ${branchName}"
+}
+
+task remoteAddDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git remote add ${repositoryName} ${gitUrl}"
+}
+
+task unpushDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git push ${repositoryName} :${branchName}"
+}
+
+task addDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git add ."
+}
+
+task commitDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git commit -m 'Doxygen update for build# ${project.ext.jcBuildSettings.buildNumber}'"
+}
+
+task pushDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git push ${repositoryName} ${branchName}"
 }
