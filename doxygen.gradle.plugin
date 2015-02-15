@@ -39,6 +39,7 @@ task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
     generate_html true
     html_header 'doxygen/header.html'
     html_footer 'doxygen/footer.html'
+    html_stylesheet 'doxygen/customdoxygen.css'
     html_extra_stylesheet 'doxygen/customdoxygen.css'
     hide_scope_names true
     source new File(projectDir, 'README.md');
