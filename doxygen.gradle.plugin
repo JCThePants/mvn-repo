@@ -45,6 +45,8 @@ task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
     source new File(projectDir, 'README.md');
     source new File(projectDir, project.ext.jcBuildSettings.sourceDir);
     use_mdfile_as_mainpage 'README.md'
+    project_name project.ext.jcBuildSettings.projectName
+    project_number project.ext.jcBuildSettings.majorVersion + '.' + project.ext.jcBuildSettings.minorVersion + '.' + project.ext.jcBuildSettings.buildNumber
 }
 
 // send dox to github pages
