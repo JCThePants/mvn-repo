@@ -67,7 +67,7 @@ task remoteAddDoxGit(type: Exec) {
 task unpushDoxGit(type: Exec) {
     workingDir new File(projectDir, outDir)
     executable shCmd
-    args '--login', '-i', '-c', "git push ${repositoryName} :${branchName}"
+    args '--login', '-i', '-c', "git push ${repositoryName} --delete ${branchName}"
 }
 
 task addDoxGit(type: Exec) {
