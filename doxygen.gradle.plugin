@@ -30,9 +30,13 @@ task updateDox() << {
 
 task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
     generate_html true
-    create_subdirs true
-    template doxyfile
+    html_header 'doxygen/header.html'
+    html_footer 'doxygen/footer.html'
+    html_extra_stylesheet 'doxygen/customdoxygen.css'
+    hide_scope_names true
+    source new File(projectDir, 'README.md');
     source new File(projectDir, project.ext.jcBuildSettings.sourceDir);
+    use_mdfile_as_mainpage 'README.md'
 }
 
 // send dox to github pages
