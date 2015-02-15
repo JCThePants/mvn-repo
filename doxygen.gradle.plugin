@@ -26,9 +26,10 @@ project.beforeEvaluate {
 task updateDox() << {
     buildDox.execute();
     initDoxGit.execute();
-    checkoutDoxGit.execute();
+    credDoxGit.execute();
     remoteAddDoxGit.execute();
     unpushDoxGit.execute();
+    checkoutDoxGit.execute();
     addDoxGit.execute();
     commitDoxGit.execute();
     pushDoxGit.execute();
@@ -50,6 +51,12 @@ task initDoxGit(type: Exec) {
     workingDir new File(projectDir, outDir)
     executable shCmd
     args '--login', '-i', '-c', "git init;"
+}
+
+task credDoxGit(type: Exec) {
+    workingDir new File(projectDir, outDir)
+    executable shCmd
+    args '--login', '-i', '-c', "git config credential.helper store --file=/.git-credentials"
 }
 
 task checkoutDoxGit(type: Exec) {
