@@ -48,6 +48,7 @@ task buildDox (type:org.ysb33r.gradle.doxygen.Doxygen) {
     cols_in_alpha_index 1
     project_name project.ext.jcBuildSettings.projectName
     project_number project.ext.jcBuildSettings.majorVersion + '.' + project.ext.jcBuildSettings.minorVersion + '.' + project.ext.jcBuildSettings.buildNumber
+    source_browser true
 }
 
 // send dox to github pages
