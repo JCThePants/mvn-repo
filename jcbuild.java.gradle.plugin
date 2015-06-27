@@ -188,6 +188,7 @@ dependencies {
 
                 // flag dependency as changing so it is re-downloaded if cached
                 changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+                force = true
             }
         }
     }
@@ -199,6 +200,7 @@ dependencies {
 
                 // flag dependency as changing so it is re-downloaded if cached
                 changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+                force = true
             }
         }
     }
@@ -210,6 +212,7 @@ dependencies {
 
                 // flag dependency as changing so it is re-downloaded if cached
                 changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+                force = true
             }
         }
     }
@@ -221,6 +224,7 @@ dependencies {
 
                 // flag dependency as changing so it is re-downloaded if cached
                 changing = changing || (snapshotDepends && snapshotDepends.contains(depend))
+                force = true
             }
         }
     }
