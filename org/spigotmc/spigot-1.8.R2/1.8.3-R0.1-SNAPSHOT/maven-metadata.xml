@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata modelVersion="1.1.0">
   <groupId>org.spigotmc</groupId>
-  <artifactId>remapped-spigot</artifactId>
+  <artifactId>spigot-1.8.R2</artifactId>
   <version>1.8.3-R0.1-SNAPSHOT</version>
   <versioning>
     <snapshot>
